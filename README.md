@@ -15,6 +15,6 @@ Add the following lines to the JVM args:
 [MIT](/LICENSE)  
 
 ### Dependencies
-| Library                                                     | License | Comptime | Runtime |
-|-------------------------------------------------------------|---------|----------|---------|
-| [Java Native Runtime - FFI](https://github.com/jnr/jnr-ffi) | MIT     | Yes      | Yes     |
+| Library                                                     | License    | Comptime | Runtime |
+|-------------------------------------------------------------|------------|----------|---------|
+| [Java Native Runtime - FFI](https://github.com/jnr/jnr-ffi) | Apache-2.0 | Yes      | Yes     |
