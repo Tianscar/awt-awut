@@ -5,7 +5,7 @@ plugins {
 }
 
 ext {
-    libraryName = 'Abstract Window Utilities Toolkit'
+    libraryName = 'Abstract Window Toolkit Utilities & Fixes'
     libraryGroupName = 'com.tianscar.awt'
     libraryVendorName = 'Tianscar'
 
@@ -53,7 +53,7 @@ publishing {
             pom {
                 name = libraryName
                 description = 'Utilities and bug fixes for Java Abstract Window Toolkit (AWT)'
-                url = 'https://github.com/Tianscar/awt-awut'
+                url = 'https://github.com/Tianscar/utilnfix'
                 licenses {
                     license {
                         name = 'The MIT License'
@@ -68,9 +68,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:git@github.com/Tianscar/awt-awut.git'
-                    developerConnection = 'scm:git:git@github.com/Tianscar/awt-awut.git'
-                    url = 'https://github.com/Tianscar/awt-awut'
+                    connection = 'scm:git:git@github.com/Tianscar/utilnfix.git'
+                    developerConnection = 'scm:git:git@github.com/Tianscar/utilnfix.git'
+                    url = 'https://github.com/Tianscar/utilnfix'
                 }
             }
         }
