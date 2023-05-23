@@ -1,12 +1,15 @@
 package com.tianscar.awt.gtk;
 
+import jnr.ffi.Pointer;
 import jnr.ffi.annotations.IgnoreError;
 import jnr.ffi.annotations.In;
+import jnr.ffi.annotations.Out;
+import jnr.ffi.byref.PointerByReference;
 
 @IgnoreError
 public interface Gtk2 extends Gtk {
 
-    // Gtk2 INSTANCE = GtkUtils.initGtk2();
+    Gtk2 INSTANCE = GtkUtils.initGtk2();
 
     long
     gtk_file_filter_new();
@@ -61,6 +64,14 @@ public interface Gtk2 extends Gtk {
     boolean
     gtk_file_chooser_get_do_overwrite_confirmation (
             @In long chooser
+    );
+
+    boolean
+    gtk_show_uri(
+            @In long screen,
+            @In CharSequence uri,
+            @In long timestamp,
+            PointerByReference error
     );
 
 }

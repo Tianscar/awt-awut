@@ -1,17 +1,16 @@
 package com.tianscar.awt.gtk;
 
 import com.tianscar.awt.X11.X11Utils;
-import jnr.ffi.LibraryLoader;
+import jnr.ffi.*;
+import jnr.ffi.Runtime;
+import jnr.ffi.byref.PointerByReference;
 
 import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
 
 public class GtkUtils {
 
-    private static final boolean isKDE = X11Utils.isX11() && System.getenv("KDE_FULL_SESSION") != null;
-    public static boolean isKDE() {
-        return isKDE;
-    }
     private static final boolean isGTKUsePortal;
     static {
         boolean tmp;
@@ -32,6 +31,17 @@ public class GtkUtils {
     static Gtk3 initGtk3() {
         try {
             return X11Utils.isX11() ? LibraryLoader.create(Gtk3.class).load("gtk-3") : null;
+        }
+        catch (Exception e) {
+            return null;
+        }
+    }
+
+    static Gtk2 initGtk2() {
+        Gtk2 gtk3 = initGtk3();
+        if (gtk3 != null) return gtk3;
+        try {
+            return X11Utils.isX11() ? LibraryLoader.create(Gtk2.class).load("gtk-x11-2.0") : null;
         }
         catch (Exception e) {
             return null;
@@ -84,6 +94,29 @@ public class GtkUtils {
         }
         catch (ClassNotFoundException | InvocationTargetException | IllegalAccessException | NoSuchMethodException | ClassCastException e) {
             return false;
+        }
+    }
+
+    public static boolean showURI(URI uri) {
+        if (!loadGtk() || checkGtkVersion(2, 1, 4)) return false;
+        Gtk2 gtk2 = Gtk2.INSTANCE;
+        if (gtk2 == null) return false;
+        gtk2.gdk_threads_enter();
+        try {
+            PointerByReference errorRef = new PointerByReference();
+            gtk2.gtk_show_uri(0, uri.toString(), 0, errorRef);
+            Pointer errPtr = errorRef.getValue();
+            if (errPtr == null || errPtr.address() == 0) return true;
+            else {
+                GError gError = new GError(Runtime.getRuntime(gtk2));
+                gError.useMemory(errPtr);
+                System.err.println(gError.message.get().getString(0));
+                gtk2.g_free(errPtr.address());
+                return false;
+            }
+        }
+        finally {
+            gtk2.gdk_threads_leave();
         }
     }
 

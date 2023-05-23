@@ -1,5 +1,6 @@
 package com.tianscar.awt.gtk;
 
+import com.tianscar.awt.AWTUtils;
 import jnr.ffi.Runtime;
 import sun.awt.SunToolkit;
 
@@ -146,118 +147,105 @@ public class Gtk3NativeFileDialog extends FileDialog {
                     public void run() {
                         if (!GtkUtils.loadGtk() && GtkUtils.isGtkLoaded()) throw new IllegalStateException("cannot init GTK");
                         gtk3.gdk_threads_enter();
-                        gtkFileChooser = gtk3.gtk_file_chooser_native_new(
-                                getTitle(),
-                                0,
-                                getMode() == SAVE ?
-                                        GtkFileChooserAction.GTK_FILE_CHOOSER_ACTION_SAVE :
-                                        GtkFileChooserAction.GTK_FILE_CHOOSER_ACTION_OPEN,
-                                null, null);
-                        if (getMode() == LOAD) gtk3.gtk_file_chooser_set_select_multiple(gtkFileChooser, isMultipleMode());
-                        gtk3.gtk_native_dialog_set_modal(gtkFileChooser, true);
-                        gtk3.gtk_file_chooser_get_do_overwrite_confirmation(gtkFileChooser);
-                        String dirname = getDirectory();
-                        String filename = getFile();
-                        /*
-                        if (filename != null) {
-                            File file = new File(filename);
-                            if (getMode() == LOAD && dirname != null && file.getParent() == null) {
-                                filename = dirname + (dirname.endsWith(File.separator) ? "" : File.separator) + filename;
-                            }
-                            else if (getMode() == SAVE && file.getParent() != null) {
-                                filename = file.getName();
-                                dirname = file.getParent();
-                            }
-                            if (getMode() == LOAD) gtk3.gtk_file_chooser_set_filename(gtkFileChooser, filename);
-                            else gtk3.gtk_file_chooser_set_current_name(gtkFileChooser, filename);
-                        }
-                         */
-                        if (dirname != null) {
-                            File file = new File(dirname);
-                            if (file.isDirectory()) {
-                                gtk3.gtk_file_chooser_set_current_folder(gtkFileChooser, dirname);
-                            }
-                            else {
-                                gtk3.gtk_file_chooser_set_current_folder(gtkFileChooser, file.getParent());
-                                if (getMode() == LOAD) gtk3.gtk_file_chooser_set_filename(gtkFileChooser, file.getAbsolutePath());
-                                else gtk3.gtk_file_chooser_set_current_name(gtkFileChooser, file.getName());
-                            }
-                        }
-                        if (filename != null && !filename.equals("")) {
-                            long gtkFileFilter = gtk3.gtk_file_filter_new();
-                            String[] mimes = filename.replaceAll(" ", "").split(",");
-                            for (String mime : mimes) {
-                                if (mime != null && !mime.equals("")) gtk3.gtk_file_filter_add_mime_type(gtkFileFilter, mime);
-                            }
-                            if (!GtkUtils.isGtkUsePortal() || !GtkUtils.isKDE()) {
-                                StringBuilder displayText = new StringBuilder();
-                                int maxMimes = 3;
-                                for (int i = 0; i < mimes.length; i ++) {
-                                    if (mimes[i] != null && !mimes[i].equals("")) displayText.append(mimes[i]);
-                                    maxMimes --;
-                                    if (maxMimes < 0) {
-                                        displayText = new StringBuilder("All supported files");
-                                        break;
-                                    }
-                                    else if (i < mimes.length - 1) displayText.append(", ");
+                        try {
+                            gtkFileChooser = gtk3.gtk_file_chooser_native_new(
+                                    getTitle(),
+                                    0,
+                                    getMode() == SAVE ?
+                                            GtkFileChooserAction.GTK_FILE_CHOOSER_ACTION_SAVE :
+                                            GtkFileChooserAction.GTK_FILE_CHOOSER_ACTION_OPEN,
+                                    null, null);
+                            if (getMode() == LOAD) gtk3.gtk_file_chooser_set_select_multiple(gtkFileChooser, isMultipleMode());
+                            gtk3.gtk_native_dialog_set_modal(gtkFileChooser, true);
+                            gtk3.gtk_file_chooser_get_do_overwrite_confirmation(gtkFileChooser);
+                            String dirname = getDirectory();
+                            String filename = getFile();
+                            if (dirname != null) {
+                                File file = new File(dirname);
+                                if (file.isDirectory()) {
+                                    gtk3.gtk_file_chooser_set_current_folder(gtkFileChooser, dirname);
                                 }
-                                gtk3.gtk_file_filter_set_name(gtkFileFilter, displayText);
-                                gtk3.gtk_file_chooser_add_filter(gtkFileChooser, gtkFileFilter);
+                                else {
+                                    gtk3.gtk_file_chooser_set_current_folder(gtkFileChooser, file.getParent());
+                                    if (getMode() == LOAD) gtk3.gtk_file_chooser_set_filename(gtkFileChooser, file.getAbsolutePath());
+                                    else gtk3.gtk_file_chooser_set_current_name(gtkFileChooser, file.getName());
+                                }
+                            }
+                            if (filename != null && !filename.equals("")) {
+                                long gtkFileFilter = gtk3.gtk_file_filter_new();
+                                String[] mimes = filename.replaceAll(" ", "").split(",");
                                 for (String mime : mimes) {
-                                    long extFilter = gtk3.gtk_file_filter_new();
-                                    gtk3.gtk_file_filter_add_mime_type(extFilter, mime);
-                                    gtk3.gtk_file_filter_set_name(extFilter, mime);
-                                    gtk3.gtk_file_chooser_add_filter(gtkFileChooser, extFilter);
+                                    if (mime != null && !mime.equals("")) gtk3.gtk_file_filter_add_mime_type(gtkFileFilter, mime);
                                 }
-                            }
-                            else gtk3.gtk_file_chooser_add_filter(gtkFileChooser, gtkFileFilter);
-                        }
-                        GtkResponseType response = gtk3.gtk_native_dialog_run(gtkFileChooser);
-                        while (gtk3.gtk_events_pending()) {
-                            gtk3.gtk_main_iteration();
-                        }
-                        Set<File> fileSet = new HashSet<>();
-                        if (response == GtkResponseType.GTK_RESPONSE_ACCEPT) {
-                            GSList list = gtk3.gtk_file_chooser_get_filenames(gtkFileChooser);
-                            GSList file = list;
-                            while (file != null) {
-                                fileSet.add(new File(file.data.get().getString(0)));
-                                gtk3.g_free(file.data.get().address());
-                                if (file.next.get() != null) {
-                                    GSList gsList = new GSList(Runtime.getRuntime(gtk3));
-                                    gsList.useMemory(file.next.get());
-                                    file = gsList;
+                                if (!GtkUtils.isGtkUsePortal() || !AWTUtils.isKDE()) {
+                                    StringBuilder displayText = new StringBuilder();
+                                    int maxMimes = 3;
+                                    for (int i = 0; i < mimes.length; i ++) {
+                                        if (mimes[i] != null && !mimes[i].equals("")) displayText.append(mimes[i]);
+                                        maxMimes --;
+                                        if (maxMimes < 0) {
+                                            displayText = new StringBuilder("All supported files");
+                                            break;
+                                        }
+                                        else if (i < mimes.length - 1) displayText.append(", ");
+                                    }
+                                    gtk3.gtk_file_filter_set_name(gtkFileFilter, displayText);
+                                    gtk3.gtk_file_chooser_add_filter(gtkFileChooser, gtkFileFilter);
+                                    for (String mime : mimes) {
+                                        long extFilter = gtk3.gtk_file_filter_new();
+                                        gtk3.gtk_file_filter_add_mime_type(extFilter, mime);
+                                        gtk3.gtk_file_filter_set_name(extFilter, mime);
+                                        gtk3.gtk_file_chooser_add_filter(gtkFileChooser, extFilter);
+                                    }
                                 }
-                                else file = null;
+                                else gtk3.gtk_file_chooser_add_filter(gtkFileChooser, gtkFileFilter);
                             }
-                            gtk3.g_slist_free(list);
+                            GtkResponseType response = gtk3.gtk_native_dialog_run(gtkFileChooser);
+                            while (gtk3.gtk_events_pending()) {
+                                gtk3.gtk_main_iteration();
+                            }
+                            Set<File> fileSet = new HashSet<>();
+                            if (response == GtkResponseType.GTK_RESPONSE_ACCEPT) {
+                                GSList list = gtk3.gtk_file_chooser_get_filenames(gtkFileChooser);
+                                GSList file = list;
+                                while (file != null) {
+                                    fileSet.add(new File(file.data.get().getString(0)));
+                                    gtk3.g_free(file.data.get().address());
+                                    if (file.next.get() != null) {
+                                        GSList gsList = new GSList(Runtime.getRuntime(gtk3));
+                                        gsList.useMemory(file.next.get());
+                                        file = gsList;
+                                    }
+                                    else file = null;
+                                }
+                                gtk3.g_slist_free(list);
+                            }
+                            quit(false);
+                            synchronized (getObjectLock()) {
+                                files = fileSet.toArray(new File[0]);
+                            }
                         }
-                        quit(false);
-                        synchronized (getObjectLock()) {
-                            files = fileSet.toArray(new File[0]);
+                        finally {
+                            gtk3.gdk_threads_leave();
+                            Gtk3NativeFileDialog.super.setVisible(false);
                         }
-                        gtk3.gdk_threads_leave();
-                        Gtk3NativeFileDialog.super.setVisible(false);
                     }
                 };
                 if (isModal()) {
-                    EventQueue.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            Dialog dummy = new Dialog(getOwner());
-                            dummy.setUndecorated(true);
-                            dummy.setBackground(new Color(0x00000000, true));
-                            dummy.setSize(0, 0);
-                            dummy.setModalityType(getModalityType());
-                            dummy.setModalExclusionType(getModalExclusionType());
-                            EventQueue.invokeLater(new Runnable() {
-                                @Override
-                                public void run() {
-                                    dummy.dispose();
-                                }
-                            });
-                            dummy.setVisible(true);
-                        }
+                    EventQueue.invokeLater(() -> {
+                        Dialog dummy = new Dialog(getOwner());
+                        dummy.setUndecorated(true);
+                        dummy.setBackground(new Color(0x00000000, true));
+                        dummy.setSize(0, 0);
+                        dummy.setModalityType(getModalityType());
+                        dummy.setModalExclusionType(getModalExclusionType());
+                        EventQueue.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                dummy.dispose();
+                            }
+                        });
+                        dummy.setVisible(true);
                     });
                     runnable.run();
                 }
@@ -281,13 +269,17 @@ public class Gtk3NativeFileDialog extends FileDialog {
     private void quit(boolean gtkThread) {
         if (gtkThread) gtk3.gdk_threads_enter();
 
-        if (gtkFileChooser != 0) {
-            gtk3.gtk_native_dialog_destroy(gtkFileChooser);
-            gtk3.g_object_unref(gtkFileChooser);
-            gtkFileChooser = 0;
+        try {
+            if (gtkFileChooser != 0) {
+                gtk3.gtk_native_dialog_destroy(gtkFileChooser);
+                gtk3.g_object_unref(gtkFileChooser);
+                gtkFileChooser = 0;
+            }
+        }
+        finally {
+            if (gtkThread) gtk3.gdk_threads_leave();
         }
 
-        if (gtkThread) gtk3.gdk_threads_leave();
     }
 
     @Override
@@ -295,8 +287,12 @@ public class Gtk3NativeFileDialog extends FileDialog {
         if (isVisible()) {
             if (gtkFileChooser != 0) {
                 gtk3.gdk_threads_enter();
-                gtk3.gtk_window_present(gtkFileChooser);
-                gtk3.gdk_threads_leave();
+                try {
+                    gtk3.gtk_window_present(gtkFileChooser);
+                }
+                finally {
+                    gtk3.gdk_threads_leave();
+                }
             }
             Container parent = getParent();
             if (parent instanceof Dialog) {

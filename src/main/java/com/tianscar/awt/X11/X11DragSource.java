@@ -55,12 +55,7 @@ public class X11DragSource extends DragSource {
             location.y += imageOffset.y;
             this.dragImage.setLocation(location);
         }
-        EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                X11DragSource.this.dragImage.setVisible(true);
-            }
-        });
+        EventQueue.invokeLater(() -> X11DragSource.this.dragImage.setVisible(true));
     }
 
 }

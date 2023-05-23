@@ -52,12 +52,7 @@ public class X11DragSourceWithImageTest {
                 dge.startDrag(null, dragImage, offset, new StringSelection(label.getText()), null);
             }
         });
-        EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                frame.setVisible(true);
-            }
-        });
+        EventQueue.invokeLater(() -> frame.setVisible(true));
     }
 
 }
