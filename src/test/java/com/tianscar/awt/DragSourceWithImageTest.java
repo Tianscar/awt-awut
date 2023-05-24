@@ -1,7 +1,6 @@
-package com.tianscar.awt.X11;
+package com.tianscar.awt;
 
-import com.tianscar.awt.X11.X11DragSource;
-import com.tianscar.awt.X11.X11Utils;
+import com.tianscar.awt.AWTFactory;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
@@ -15,14 +14,12 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 
-public class X11DragSourceWithImageTest {
+public class DragSourceWithImageTest {
 
     public static void main(String[] args) {
-        X11Utils.fixDragAndDropCursors();
         Frame frame = new Frame();
         frame.setSize(640, 480);
         frame.setResizable(false);
-        frame.setLocationRelativeTo(null);
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -40,7 +37,8 @@ public class X11DragSourceWithImageTest {
         label.setBackground(new Color(0x00FFFFFF, true));
         frame.add(label);
         frame.pack();
-        DragSource dragSource = new X11DragSource();
+        frame.setLocationRelativeTo(null);
+        DragSource dragSource = AWTFactory.createDragSource();
         dragSource.createDefaultDragGestureRecognizer(label, DnDConstants.ACTION_COPY, new DragGestureListener() {
             @Override
             public void dragGestureRecognized(DragGestureEvent dge) {

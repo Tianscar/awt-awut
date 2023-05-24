@@ -1,6 +1,6 @@
 package com.tianscar.awt.X11;
 
-public interface cursorfont {
+public interface CursorFont {
 
     int XC_num_glyphs = 154;
     int XC_X_cursor = 0;

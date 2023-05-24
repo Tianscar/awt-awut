@@ -7,9 +7,9 @@ import java.net.URISyntaxException;
 public class Gtk2ShowURITest {
 
     public static void main(String[] args) throws URISyntaxException {
-        GtkUtils.showURI(new URI("https://github.com"));
-        GtkUtils.showURI(new File("LICENSE").toURI());
-        GtkUtils.showURI(new URI("mailto://tianscar@protonmail.com"));
+        GtkUtils.gtk2ShowURI(new URI("https://github.com"));
+        GtkUtils.gtk2ShowURI(new File("LICENSE").toURI());
+        GtkUtils.gtk2ShowURI(new URI("mailto://tianscar@protonmail.com"));
     }
 
 }

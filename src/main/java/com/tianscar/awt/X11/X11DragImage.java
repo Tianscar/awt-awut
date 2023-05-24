@@ -14,13 +14,13 @@ public class X11DragImage extends Window {
 
     public X11DragImage(Image dragImage) throws HeadlessException {
         super(null);
+        X11Utils.checkX11DragSourceSupported();
         setType(Type.POPUP);
         this.dragImage = dragImage;
         setSize(dragImage.getWidth(null), dragImage.getHeight(null));
         setBackground(new Color(0x00000000, true));
         setFocusableWindowState(false);
         setAlwaysOnTop(true);
-        setName("###overrideRedirect###");
         addNotify();
         long display = X11Utils.getDisplay();
         if (display == 0) throw new HeadlessException("could not get X display");

@@ -53,7 +53,7 @@ publishing {
             pom {
                 name = libraryName
                 description = 'Utilities and bug fixes for Java Abstract Window Toolkit (AWT)'
-                url = 'https://github.com/Tianscar/utfix'
+                url = 'https://github.com/Tianscar/Tianscar/awt-unf'
                 licenses {
                     license {
                         name = 'The MIT License'
@@ -68,9 +68,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:git@github.com/Tianscar/utfix.git'
-                    developerConnection = 'scm:git:git@github.com/Tianscar/utfix.git'
-                    url = 'https://github.com/Tianscar/utfix'
+                    connection = 'scm:git:git@github.com/Tianscar/Tianscar/awt-unf.git'
+                    developerConnection = 'scm:git:git@github.com/Tianscar/Tianscar/awt-unf.git'
+                    url = 'https://github.com/Tianscar/Tianscar/awt-unf'
                 }
             }
         }

@@ -1,6 +1,6 @@
 package com.tianscar.awt.gtk;
 
-import com.tianscar.awt.AWTUtils;
+import com.tianscar.awt.AWTFactory;
 import jnr.ffi.Runtime;
 import sun.awt.SunToolkit;
 
@@ -15,7 +15,7 @@ import java.util.Set;
 public class Gtk3NativeFileDialog extends FileDialog {
 
     private static final long serialVersionUID = 5722891644783979481L;
-    private final Gtk3 gtk3;
+    private static final Gtk3 gtk3 = Gtk3.INSTANCE;
 
     public Gtk3NativeFileDialog(Frame parent) {
         this(parent, "", LOAD);
@@ -27,10 +27,7 @@ public class Gtk3NativeFileDialog extends FileDialog {
 
     public Gtk3NativeFileDialog(Frame parent, String title, int mode) {
         super(parent, title, mode);
-        gtk3 = Gtk3.INSTANCE;
-        if (gtk3 == null) throw new IllegalStateException("could not load GTK3 library");
-        if (!GtkUtils.checkGtkVersion(3, 2, 0))
-            throw new IllegalStateException("GTK version 3.2.0 required");
+        GtkUtils.checkGtk3NativeFileDialogSupported();
     }
 
     public Gtk3NativeFileDialog(Dialog parent) {
@@ -43,10 +40,7 @@ public class Gtk3NativeFileDialog extends FileDialog {
 
     public Gtk3NativeFileDialog(Dialog parent, String title, int mode) {
         super(parent, title, mode);
-        gtk3 = Gtk3.INSTANCE;
-        if (gtk3 == null) throw new IllegalStateException("could not load GTK3 library");
-        if (!GtkUtils.checkGtkVersion(3, 2, 0))
-            throw new IllegalStateException("GTK version 3.2.0 required");
+        GtkUtils.checkGtk3NativeFileDialogSupported();
     }
 
     private volatile int mode;
@@ -145,7 +139,7 @@ public class Gtk3NativeFileDialog extends FileDialog {
                 Runnable runnable = new Runnable() {
                     @Override
                     public void run() {
-                        if (!GtkUtils.loadGtk() && GtkUtils.isGtkLoaded()) throw new IllegalStateException("cannot init GTK");
+                        if (!GtkUtils.initializeGtk() && GtkUtils.isGtkInitialized()) throw new IllegalStateException("cannot init GTK");
                         gtk3.gdk_threads_enter();
                         try {
                             gtkFileChooser = gtk3.gtk_file_chooser_native_new(
@@ -177,7 +171,7 @@ public class Gtk3NativeFileDialog extends FileDialog {
                                 for (String mime : mimes) {
                                     if (mime != null && !mime.equals("")) gtk3.gtk_file_filter_add_mime_type(gtkFileFilter, mime);
                                 }
-                                if (!GtkUtils.isGtkUsePortal() || !AWTUtils.isKDE()) {
+                                if (!GtkUtils.isGtkUsePortal() || !AWTFactory.isKDE()) {
                                     StringBuilder displayText = new StringBuilder();
                                     int maxMimes = 3;
                                     for (int i = 0; i < mimes.length; i ++) {
@@ -239,12 +233,7 @@ public class Gtk3NativeFileDialog extends FileDialog {
                         dummy.setSize(0, 0);
                         dummy.setModalityType(getModalityType());
                         dummy.setModalExclusionType(getModalExclusionType());
-                        EventQueue.invokeLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                dummy.dispose();
-                            }
-                        });
+                        EventQueue.invokeLater(dummy::dispose);
                         dummy.setVisible(true);
                     });
                     runnable.run();

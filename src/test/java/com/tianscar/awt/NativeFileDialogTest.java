@@ -1,6 +1,4 @@
-package com.tianscar.awt.gtk;
-
-import com.tianscar.awt.gtk.Gtk3NativeFileDialog;
+package com.tianscar.awt;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -9,7 +7,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Arrays;
 
-public class Gtk3NativeFileDialogTest {
+public class NativeFileDialogTest {
 
     public static void main(String[] args) {
         Frame frame = new Frame();
@@ -19,7 +17,7 @@ public class Gtk3NativeFileDialogTest {
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowOpened(WindowEvent e) {
-                FileDialog fileDialog = new Gtk3NativeFileDialog(frame);
+                FileDialog fileDialog = AWTFactory.createFileDialog(frame);
                 fileDialog.setTitle("PNG, JPEG, GIF images");
                 fileDialog.setMode(FileDialog.SAVE);
                 fileDialog.setFile("image/png, image/jpeg, image/gif");

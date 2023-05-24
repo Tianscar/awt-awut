@@ -1,6 +1,6 @@
 package com.tianscar.awt.X11;
 
-import com.tianscar.awt.AWTUtils;
+import com.tianscar.awt.AWTFactory;
 import jnr.ffi.Runtime;
 import jnr.ffi.*;
 import jnr.ffi.byref.IntByReference;
@@ -10,7 +10,6 @@ import sun.awt.AWTAccessor;
 import sun.awt.SunToolkit;
 
 import java.awt.*;
-import java.awt.peer.ComponentPeer;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Objects;
@@ -65,7 +64,12 @@ public class X11Utils {
         return Toolkit.getDefaultToolkit().getClass().getName().endsWith(".XToolkit");
     }
 
+    public static void checkX11() {
+        if (!isX11()) throw new IllegalStateException("Not X11 environment");
+    }
+
     public static long getDisplay() {
+        checkX11();
         try {
             return (long) Class.forName("sun.awt.X11.XToolkit").getMethod("getDisplay").invoke(null);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
@@ -74,9 +78,10 @@ public class X11Utils {
     }
 
     public static long getXWindow(Component component) {
+        checkX11();
         if (component == null) return 0;
         try {
-            ComponentPeer peer = AWTAccessor.getComponentAccessor().getPeer(component);
+            Object peer = AWTAccessor.getComponentAccessor().getPeer(component);
             return (long) peer.getClass().getMethod("getWindow").invoke(peer);
         }
         catch (Exception ignored) {
@@ -85,6 +90,7 @@ public class X11Utils {
     }
 
     public static boolean isXWMHintSupported(long display, long w, long atom) {
+        checkX11();
         Xlib xlib = Xlib.INSTANCE;
 
         if (xlib == null) return false;
@@ -131,6 +137,7 @@ public class X11Utils {
     }
 
     public static boolean sendClientMessageXEvent(long display, long window, String atomName, long[] data) {
+        checkX11();
         if (window == 0 || display == 0 || data.length != 5) return false;
         Xlib xlib = Xlib.INSTANCE;
         if (xlib == null) return false;
@@ -163,11 +170,13 @@ public class X11Utils {
     }
 
     public static boolean moveResizeXWindow(long display, long window, Point location, int direction) {
+        checkX11();
         Objects.requireNonNull(location, "location");
         return sendClientMessageXEvent(display, window, "_NET_WM_MOVERESIZE", new long[] {location.x, location.y, direction, X.Button1, 1});
     }
 
     public static Cursor createXCustomCursor(Image cursor, Point hotSpot, String name) throws IndexOutOfBoundsException, HeadlessException {
+        checkX11();
         if (GraphicsEnvironment.isHeadless()) throw new HeadlessException();
         long display = getDisplay();
         if (display == 0 || Xcursor.INSTANCE == null || !Xcursor.INSTANCE.XcursorSupportsARGB(display))
@@ -178,7 +187,10 @@ public class X11Utils {
     private static final Map<String, Cursor> systemCursors = new ConcurrentHashMap<>(1);
 
     public static Cursor getXSystemCursor(int type) throws IllegalArgumentException, HeadlessException {
+        checkX11();
         if (GraphicsEnvironment.isHeadless()) throw new HeadlessException();
+        int cursorType = getCursorType(type);
+        if (cursorType != Cursor.CUSTOM_CURSOR) return Cursor.getPredefinedCursor(cursorType);
         Xlib xlib = Xlib.INSTANCE;
         long display = getDisplay();
         if (display == 0 || xlib == null) return null;
@@ -189,7 +201,43 @@ public class X11Utils {
         return systemCursors.get(name);
     }
 
+    private static int getCursorType(int type) {
+        switch (type) {
+            case CursorFont.XC_left_ptr:
+                return Cursor.DEFAULT_CURSOR;
+            case CursorFont.XC_crosshair:
+                return Cursor.CROSSHAIR_CURSOR;
+            case CursorFont.XC_xterm:
+                return Cursor.TEXT_CURSOR;
+            case CursorFont.XC_watch:
+                return Cursor.WAIT_CURSOR;
+            case CursorFont.XC_bottom_left_corner:
+                return Cursor.SW_RESIZE_CURSOR;
+            case CursorFont.XC_top_left_corner:
+                return Cursor.NW_RESIZE_CURSOR;
+            case CursorFont.XC_bottom_right_corner:
+                return Cursor.SE_RESIZE_CURSOR;
+            case CursorFont.XC_top_right_corner:
+                return Cursor.NE_RESIZE_CURSOR;
+            case CursorFont.XC_bottom_side:
+                return Cursor.S_RESIZE_CURSOR;
+            case CursorFont.XC_top_side:
+                return Cursor.N_RESIZE_CURSOR;
+            case CursorFont.XC_left_side:
+                return Cursor.W_RESIZE_CURSOR;
+            case CursorFont.XC_right_side:
+                return Cursor.E_RESIZE_CURSOR;
+            case CursorFont.XC_hand2:
+                return Cursor.HAND_CURSOR;
+            case CursorFont.XC_fleur:
+                return Cursor.MOVE_CURSOR;
+            default:
+                return Cursor.CUSTOM_CURSOR;
+        }
+    }
+
     public static String getXSystemCursorName(int type) {
+        checkX11();
         switch (type) {
             case 0: return "X_cursor";
             case 2: return "arrow";
@@ -273,6 +321,7 @@ public class X11Utils {
     }
 
     public static Cursor getXSystemCursor(String name) throws HeadlessException {
+        checkX11();
         if (GraphicsEnvironment.isHeadless()) throw new HeadlessException();
         long display = getDisplay();
         if (display == 0 || Xcursor.INSTANCE == null) return null;
@@ -284,8 +333,13 @@ public class X11Utils {
         }
     }
 
+    public static boolean isXcursorSupported() {
+        return Xcursor.INSTANCE != null;
+    }
+
     public static boolean fixDragAndDropCursors() {
-        Map<String, Object> desktopProperties = AWTUtils.getDesktopProperties();
+        checkX11();
+        Map<String, Object> desktopProperties = AWTFactory.getDesktopProperties();
         if (desktopProperties == null) return false;
         desktopProperties.put("DnD.Cursor.CopyDrop", getXSystemCursor("copy"));
         desktopProperties.put("DnD.Cursor.MoveDrop", getXSystemCursor("move"));
@@ -297,6 +351,7 @@ public class X11Utils {
     }
 
     public static boolean setXWindowType(long display, long window, CharSequence windowType) throws HeadlessException {
+        checkX11();
         Xlib xlib = Xlib.INSTANCE;
         if (xlib == null || display == 0 || window == 0) return false;
         SunToolkit.awtLock();
@@ -314,13 +369,14 @@ public class X11Utils {
     }
 
     public static boolean allowXWindowInputPassthrough(long display, long window) {
+        checkX11();
         Xfixes xfixes = Xfixes.INSTANCE;
         if (xfixes == null || display == 0 || window == 0) return false;
         SunToolkit.awtLock();
         try {
             Pointer region = xfixes.XFixesCreateRegion(display, null, 0);
-            xfixes.XFixesSetWindowShapeRegion(display, window, shapeconst.ShapeBounding, 0, 0, Pointer.wrap(Runtime.getRuntime(xfixes), 0));
-            xfixes.XFixesSetWindowShapeRegion(display, window, shapeconst.ShapeInput, 0, 0, region);
+            xfixes.XFixesSetWindowShapeRegion(display, window, ShapeConst.ShapeBounding, 0, 0, Pointer.wrap(Runtime.getRuntime(xfixes), 0));
+            xfixes.XFixesSetWindowShapeRegion(display, window, ShapeConst.ShapeInput, 0, 0, region);
             xfixes.XFixesDestroyRegion(display, region);
             return true;
         }
@@ -329,7 +385,16 @@ public class X11Utils {
         }
     }
 
+    public static boolean isX11DragSourceSupported() {
+        return Xfixes.INSTANCE != null;
+    }
+
+    public static void checkX11DragSourceSupported() {
+        if (Xfixes.INSTANCE == null) throw new IllegalStateException("could not load Xfixes library");
+    }
+
     public static boolean setXWindowOverrideRedirect(long display, long window) {
+        checkX11();
         Xlib xlib = Xlib.INSTANCE;
         if (display == 0 || window == 0 || xlib == null) return false;
         SunToolkit.awtLock();
