@@ -1,4 +1,4 @@
-# Abstract Window Toolkit Utilities & Fixes
+# Abstract Window Toolkit Utilities & Bugfixes
 Utilities and bug fixes for Java Abstract Window Toolkit (AWT)
 
 ### Running on Java 16+

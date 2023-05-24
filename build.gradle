@@ -5,7 +5,7 @@ plugins {
 }
 
 ext {
-    libraryName = 'Abstract Window Toolkit Utilities & Fixes'
+    libraryName = 'Abstract Window Toolkit Utilities & Bugfixes'
     libraryGroupName = 'com.tianscar.awt'
     libraryVendorName = 'Tianscar'
 
