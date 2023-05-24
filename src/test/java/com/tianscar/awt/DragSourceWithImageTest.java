@@ -1,7 +1,5 @@
 package com.tianscar.awt;
 
-import com.tianscar.awt.AWTFactory;
-
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.dnd.DnDConstants;

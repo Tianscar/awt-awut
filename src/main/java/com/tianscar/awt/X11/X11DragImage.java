@@ -36,13 +36,9 @@ public class X11DragImage extends Window {
     public void paint(Graphics g) {
         super.paint(g);
         if (dragImage != null) {
-            g = g.create();
-            try {
-                g.drawImage(dragImage, 0, 0, null);
-            }
-            finally {
-                g.dispose();
-            }
+            Graphics2D g2d = ((Graphics2D) g);
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+            g2d.drawImage(dragImage, 0, 0, null);
         }
     }
 

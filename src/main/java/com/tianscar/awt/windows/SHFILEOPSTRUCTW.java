@@ -1,4 +1,4 @@
-package com.tianscar.awt.win32;
+package com.tianscar.awt.windows;
 
 import jnr.ffi.Runtime;
 import jnr.ffi.Struct;

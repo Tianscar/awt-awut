@@ -4,7 +4,7 @@ import com.tianscar.awt.X11.X11DragSource;
 import com.tianscar.awt.X11.X11Utils;
 import com.tianscar.awt.gtk.Gtk3NativeFileDialog;
 import com.tianscar.awt.gtk.GtkUtils;
-import com.tianscar.awt.win32.Win32Utils;
+import com.tianscar.awt.windows.Win32Utils;
 
 import java.awt.*;
 import java.awt.dnd.DragSource;

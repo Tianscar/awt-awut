@@ -1,4 +1,4 @@
-package com.tianscar.awt.win32;
+package com.tianscar.awt.windows;
 
 import com.tianscar.awt.AWTFactory;
 import jnr.ffi.LibraryLoader;
